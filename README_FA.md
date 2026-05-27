@@ -77,7 +77,10 @@
 | ✅ ضروری | اکانت گوگل | رایگان |
 | ✅ ضروری | کلید امنیتی (خودت می‌سازی) | رایگان |
 | ☁️ یکی از این دو | VPS با آی‌پی ثابت | ~۵ دلار در ماه |
-| ☁️ یا این | اکانت Cloudflare | پلن رایگان کافیه |
+| ☁️ یا این | Cloudflare Worker | رایگان (فقط رله HTTP دسکتاپ) |
+
+> **دسکتاپ:** خروجی می‌تواند Worker یا VPS (`/relay`) باشد.  
+> **اندروید (VPN):** امروز حتماً VPS با `/tunnel` لازم است — Worker تونل TCP ندارد. می‌توانی Worker برای دسکتاپ + VPS برای اندروید (`EXIT_TUNNEL_URL`).
 
 ### مرحله ۱ — اجرای برنامه دسکتاپ
 
@@ -130,13 +133,11 @@
 
 VPS لینوکس (amd64 یا arm64)، IP عمومی، پورت **۸۷۸۷** باز، SSH با `user@host` و `sudo`. روی لپ‌تاپ فقط `ssh`/`scp` (بدون Go).
 
-1. **`zyrln-vps-install-VERSION.zip`** را از [Releases](../../releases) بگیر و از حالت فشرده خارج کن (`make vps-relay-bundle` برای ساخت zip).
+1. **`zyrln-vps-install-VERSION.zip`** را از [Releases](../../releases) بگیر و از حالت فشرده خارج کن.
 2. در همان پوشه: `./install-vps-relay.sh user@IP_VPS` — اختیاری: `ZYRLN_RELAY_KEY=secret` یا `auto` (همان `EXIT_RELAY_KEY` در Apps Script).
 3. در `Code.gs`: `EXIT_RELAY_URL = "http://IP_VPS:8787/relay"` و در صورت نیاز `EXIT_RELAY_KEY`.
 
 تست: `curl -s http://IP_VPS:8787/healthz` باید `ok` چاپ کند.
-
-از مخزن: `make vps-relay-bundle`، بعد `./scripts/install-vps-relay.sh user@IP_VPS`.
 
 ### مرحله ۳ — راه‌اندازی Apps Script
 
@@ -149,9 +150,10 @@ VPS لینوکس (amd64 یا arm64)، IP عمومی، پورت **۸۷۸۷** با
 <div dir="ltr" align="left" style="direction: ltr; text-align: left;">
 
 ```js
-const AUTH_KEY       = "your-key-from-step-1";
-const EXIT_RELAY_URL = "http://YOUR_VPS_IP:8787/relay";
-const EXIT_RELAY_KEY = "";
+const AUTH_KEY        = "your-key-from-step-1";
+const EXIT_RELAY_URL  = "http://YOUR_VPS_IP:8787/relay";
+const EXIT_TUNNEL_URL = "http://YOUR_VPS_IP:8787/tunnel";
+const EXIT_RELAY_KEY  = "";
 ```
 
 </div>
@@ -219,6 +221,9 @@ make proxy
 
 # تست
 make test
+
+# zip نصب VPS (اسکریپت + باینری amd64/arm64)
+make vps-relay-bundle   # → dist/zyrln-vps-install-VERSION.zip
 ```
 
 </div>

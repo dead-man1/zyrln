@@ -119,14 +119,12 @@ This is the exit node that fetches real websites. Pick one option:
 
 Linux VPS (amd64 or arm64), public IP, port **8787** open, SSH as `user@host` with `sudo`. On your laptop you only need `ssh`/`scp` (no Go).
 
-1. Download **`zyrln-vps-install-VERSION.zip`** from [Releases](../../releases) and unzip it (`make vps-relay-bundle` to build the zip).
+1. Download **`zyrln-vps-install-VERSION.zip`** from [Releases](../../releases) and unzip it.
 2. In the unzipped folder, run `./install-vps-relay.sh user@YOUR_VPS_IP` (e.g. `ubuntu@1.2.3.4`).  
    Optional shared secret: `ZYRLN_RELAY_KEY=secret` or `ZYRLN_RELAY_KEY=auto` before the command — use the same value for `EXIT_RELAY_KEY` in Apps Script.
 3. In `Code.gs`: `EXIT_RELAY_URL = "http://YOUR_VPS_IP:8787/relay"` and `EXIT_RELAY_KEY` if you set one.
 
 Check: `curl -s http://YOUR_VPS_IP:8787/healthz` should print `ok`.
-
-From a git clone: `make vps-relay-bundle`, then `./scripts/install-vps-relay.sh user@YOUR_VPS_IP`.
 
 ### Step 3 — Deploy the Apps Script relay
 
@@ -137,9 +135,10 @@ This is the front door. It sits on Google's servers and receives your traffic.
 3. Edit the three lines at the top:
 
 ```js
-const AUTH_KEY       = "your-key-from-step-1";
-const EXIT_RELAY_URL = "http://YOUR_VPS_IP:8787/relay";
-const EXIT_RELAY_KEY = "";
+const AUTH_KEY        = "your-key-from-step-1";
+const EXIT_RELAY_URL  = "http://YOUR_VPS_IP:8787/relay";
+const EXIT_TUNNEL_URL = "http://YOUR_VPS_IP:8787/tunnel";
+const EXIT_RELAY_KEY  = "";
 ```
 
 - If using **Cloudflare Worker**: paste the Worker URL in `EXIT_RELAY_URL`, no `/relay` at the end
@@ -197,6 +196,9 @@ make proxy
 
 # Run tests
 make test
+
+# VPS install zip (installer + linux amd64/arm64 binaries)
+make vps-relay-bundle   # → dist/zyrln-vps-install-VERSION.zip
 ```
 
 `make desktop` builds a local `./zyrln` binary for your current machine. `make desktop-release` writes platform-specific binaries into `dist/` using the release names shown above.

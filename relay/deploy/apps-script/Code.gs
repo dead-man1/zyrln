@@ -1,6 +1,6 @@
 const AUTH_KEY = "CHANGE_ME_TO_A_LONG_RANDOM_SECRET";
 const EXIT_RELAY_URL = "https://CHANGE_ME_EXIT_RELAY_URL/relay";
-const EXIT_TUNNEL_URL = ""; // optional; defaults to same host as EXIT_RELAY_URL with /tunnel
+const EXIT_TUNNEL_URL = "http://CHANGE_ME_EXIT_TUNNEL_URL/tunnel"; // optional; leave "" to derive from EXIT_RELAY_URL
 const EXIT_RELAY_KEY = "";
 
 const SKIP_HEADERS = {
