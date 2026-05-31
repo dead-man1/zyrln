@@ -133,7 +133,7 @@
 
 VPS لینوکس (amd64 یا arm64)، IP عمومی، پورت **۸۷۸۷** باز، SSH با `user@host` و `sudo`. روی لپ‌تاپ فقط `ssh`/`scp` (بدون Go).
 
-1. **`zyrln-vps-install-VERSION.zip`** را از [Releases](../../releases) بگیر و از حالت فشرده خارج کن.
+1. **`zyrln-VERSION-vps.zip`** را از [Releases](../../releases) بگیر و از حالت فشرده خارج کن.
 2. در همان پوشه: `./install-vps-relay.sh user@IP_VPS` — اختیاری: `ZYRLN_RELAY_KEY=secret` یا `auto` (همان `EXIT_RELAY_KEY` در Apps Script).
 3. در `Code.gs`: `EXIT_RELAY_URL = "http://IP_VPS:8787/relay"` و در صورت نیاز `EXIT_RELAY_KEY`.
 
@@ -221,7 +221,7 @@ make proxy
 make test
 
 # zip نصب VPS (اسکریپت + باینری amd64/arm64)
-make vps-relay-bundle   # → dist/zyrln-vps-install-VERSION.zip
+make vps-relay-bundle   # → dist/zyrln-VERSION-vps.zip
 ```
 
 </div>
