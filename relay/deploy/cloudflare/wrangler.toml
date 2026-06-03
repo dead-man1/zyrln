@@ -1,0 +1,15 @@
+name = "mine"   # your Worker name in the Cloudflare dashboard
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# Optional shared secret (match EXIT_RELAY_KEY in Apps Script when set on VPS).
+# [vars]
+# RELAY_KEY = ""
+
+[[durable_objects.bindings]]
+name = "TUNNEL_HUB"
+class_name = "TunnelHub"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TunnelHub"]

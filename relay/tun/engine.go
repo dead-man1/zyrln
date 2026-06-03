@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"syscall"
 
 	"zyrln/relay/core"
 )
@@ -17,9 +18,10 @@ type Engine struct {
 	mu      sync.Mutex
 	writeMu sync.Mutex
 	dnsSem  chan struct{}
-	ctx     context.Context
-	cancel  context.CancelFunc
-	wg      sync.WaitGroup
+	ctx      context.Context
+	cancel   context.CancelFunc
+	wg       sync.WaitGroup
+	stopOnce sync.Once
 }
 
 // Start attaches to an existing TUN file descriptor (Android VpnService).
@@ -28,8 +30,14 @@ func Start(tunFD int, cfg Config) (*Engine, error) {
 		return nil, fmt.Errorf("invalid tun fd")
 	}
 	core.EnsureDomesticRules()
-	f := os.NewFile(uintptr(tunFD), "tun")
+	// Dup so closing our os.File does not close the fd owned by Android VpnService.
+	dupFD, err := syscall.Dup(tunFD)
+	if err != nil {
+		return nil, fmt.Errorf("dup tun fd: %w", err)
+	}
+	f := os.NewFile(uintptr(dupFD), "tun")
 	if f == nil {
+		_ = syscall.Close(dupFD)
 		return nil, fmt.Errorf("open tun fd")
 	}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -87,8 +95,12 @@ func (e *Engine) handlePacket(raw []byte) {
 	}
 }
 
-// Stop shuts down the engine and closes the TUN file.
+// Stop shuts down the engine and closes our dup of the TUN fd.
 func (e *Engine) Stop() {
+	e.stopOnce.Do(func() { e.stop() })
+}
+
+func (e *Engine) stop() {
 	e.cancel()
 	e.mu.Lock()
 	stopping := make([]*tcpFlow, 0, len(e.flows))

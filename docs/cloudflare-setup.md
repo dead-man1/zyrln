@@ -1,42 +1,66 @@
 # Cloudflare Worker Setup
 
-An alternative to running your own VPS. The free tier handles personal use easily.
+Free exit alternative to a VPS. One Worker handles **HTTP relay** (desktop) and **TCP tunnel** (Android). Deploy with Wrangler only — it uploads the code and registers the `TUNNEL_HUB` Durable Object binding Android needs.
 
-## Deploy the Worker
+## Deploy
 
-1. Go to [dash.cloudflare.com](https://dash.cloudflare.com)
-2. **Workers & Pages → Create application → Worker**
-3. Replace the default code with the contents of [`relay/deploy/cloudflare/worker.js`](../relay/deploy/cloudflare/worker.js)
-4. Click **Deploy**
-5. Copy the Worker URL:
-   `https://your-worker.your-subdomain.workers.dev`
-
-## Update Apps Script
-
-In `relay/deploy/apps-script/Code.gs`, set `EXIT_RELAY_URL` to your Worker URL:
-
-```js
-const EXIT_RELAY_URL = "https://your-worker.your-subdomain.workers.dev/relay";
-const EXIT_RELAY_KEY = "";   // leave empty — Workers don't use this
+```bash
+cd relay/deploy/cloudflare
+npm install -g wrangler   # once
+wrangler login            # once
 ```
 
-Then redeploy the Apps Script: **Deploy → Manage deployments → New version**.
+Edit before deploy:
 
-## Cloudflare vs VPS
+1. **`worker.js`** — `WORKER_HOST = "your-worker.your-subdomain.workers.dev"` (hostname only, no `https://`)
+2. **`wrangler.toml`** — `name = "your-worker-name"` (same name as in the Cloudflare dashboard)
 
-| | Cloudflare Worker | VPS |
+```bash
+wrangler deploy
+```
+
+Confirm output includes `env.TUNNEL_HUB (TunnelHub)` and your `*.workers.dev` URL.
+
+To update later: same `wrangler deploy` from this folder.
+
+## Apps Script
+
+In [`relay/deploy/apps-script/Code.gs`](../relay/deploy/apps-script/Code.gs):
+
+```js
+const EXIT_RELAY_URL = "https://your-worker.your-subdomain.workers.dev";
+const EXIT_TUNNEL_URL = "";   // empty → same host + /tunnel
+const EXIT_RELAY_KEY = "";    // empty unless RELAY_KEY is set in wrangler.toml
+```
+
+Redeploy Apps Script: **Deploy → Manage deployments → New version**.
+
+Optional split exit (Worker relay + VPS tunnel):
+
+```js
+const EXIT_TUNNEL_URL = "http://YOUR_VPS_IP:8787/tunnel";
+```
+
+## Verify
+
+```bash
+curl -s -X POST "https://your-worker.workers.dev/tunnel" \
+  -H "Content-Type: application/json" \
+  -d '{"op":"open","id":"test-1","target":"149.154.167.92:443"}'
+```
+
+Expect `{"ok":true}`. If you see `missing TUNNEL_HUB binding`, run `wrangler deploy` again from `relay/deploy/cloudflare/`.
+
+## Worker vs VPS
+
+| | Worker | VPS |
 |---|---|---|
-| Cost | Free | ~$5/mo |
-| Setup time | 2 minutes | 15 minutes |
-| Fixed IP | No | Yes |
-| ChatGPT / Cloudflare-protected sites | No | Yes |
-| All other sites | Yes | Yes |
-| Passes CAPTCHAs | No | Yes |
-| Cloudflare sees traffic metadata | Yes | No |
+| Cost | Free tier | ~$5/mo |
+| Android tunnel / Telegram | Yes | Yes |
+| Desktop HTTP relay | Yes | Yes |
+| Sites on Cloudflare IPs (e.g. ChatGPT) | No — Workers block outbound TCP to CF ranges | Yes |
+| CAPTCHAs / fixed IP | No / No | Yes / Yes |
 
-## Free Tier Limits
+Free tier: ~100k requests/day; tunnel polls use Durable Object time. Heavy use → second Worker account or VPS.
 
-- 100,000 requests/day
-- 10ms CPU time per request
-
-Enough for normal browsing. Heavy use (video, large downloads) may hit the daily limit — add a second Worker under a different Cloudflare account.
+Files: [`worker.js`](../relay/deploy/cloudflare/worker.js), [`wrangler.toml`](../relay/deploy/cloudflare/wrangler.toml).

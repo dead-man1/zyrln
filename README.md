@@ -72,7 +72,7 @@ To access Instagram, Twitter, Telegram, and other non-Google sites, you need to 
 | ✅ Required | Google account | Free |
 | ✅ Required | A shared auth key (you generate it) | Free |
 | ☁️ Pick one | VPS with a public IP | ~$5/mo |
-| ☁️ Or this | Cloudflare account | Free tier is enough |
+| ☁️ Or this | Cloudflare Worker | Free — [setup guide](docs/cloudflare-setup.md) |
 
 ### Step 1 — Run the desktop app
 
@@ -110,10 +110,7 @@ This is the exit node that fetches real websites. Pick one option:
 
 #### Option A — Cloudflare Worker (recommended, free)
 
-1. Go to [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages → Create**
-2. Paste the contents of [`relay/deploy/cloudflare/worker.js`](relay/deploy/cloudflare/worker.js)
-3. Click **Deploy** and copy the Worker URL:
-   `https://your-worker.your-subdomain.workers.dev`
+See [Cloudflare Worker setup](docs/cloudflare-setup.md) — deploy with Wrangler from `relay/deploy/cloudflare/`.
 
 #### Option B — VPS
 
@@ -141,8 +138,8 @@ const EXIT_TUNNEL_URL = "http://YOUR_VPS_IP:8787/tunnel";
 const EXIT_RELAY_KEY  = "";
 ```
 
-- If using **Cloudflare Worker**: paste the Worker URL in `EXIT_RELAY_URL`, no `/relay` at the end
-- If using **VPS**: fill `EXIT_RELAY_KEY` with your relay key; leave empty for Cloudflare
+- If using **Cloudflare Worker**: set `EXIT_RELAY_URL` to the Worker URL; leave `EXIT_TUNNEL_URL` empty (Apps Script uses `/tunnel` on the same host)
+- If using **VPS**: fill `EXIT_RELAY_KEY` with your relay key; leave empty for Cloudflare unless you set `RELAY_KEY` in `wrangler.toml`
 
 4. Click **Deploy → New deployment**
    - Type: **Web app**

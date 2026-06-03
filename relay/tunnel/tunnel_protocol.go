@@ -43,7 +43,7 @@ type TunnelBatchResponse struct {
 	Results []TunnelResponse `json:"results"`
 }
 
-// TunnelRequest is one tunnel operation forwarded to the VPS /tunnel endpoint.
+// TunnelRequest is one tunnel operation forwarded to the exit /tunnel handler (VPS or Cloudflare Worker).
 type TunnelRequest struct {
 	Op     string `json:"op"`
 	ID     string `json:"id"`

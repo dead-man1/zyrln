@@ -77,10 +77,7 @@
 | ✅ ضروری | اکانت گوگل | رایگان |
 | ✅ ضروری | کلید امنیتی (خودت می‌سازی) | رایگان |
 | ☁️ یکی از این دو | VPS با آی‌پی ثابت | ~۵ دلار در ماه |
-| ☁️ یا این | Cloudflare Worker | رایگان (فقط رله HTTP دسکتاپ) |
-
-> **دسکتاپ:** خروجی می‌تواند Worker یا VPS (`/relay`) باشد.  
-> **اندروید (VPN):** امروز حتماً VPS با `/tunnel` لازم است — Worker تونل TCP ندارد. می‌توانی Worker برای دسکتاپ + VPS برای اندروید (`EXIT_TUNNEL_URL`).
+| ☁️ یا این | Cloudflare Worker | رایگان — [راه‌اندازی](docs/fa/cloudflare-setup.md) |
 
 ### مرحله ۱ — اجرای برنامه دسکتاپ
 
@@ -124,10 +121,7 @@
 
 #### گزینه الف — Cloudflare Worker (پیشنهادی، رایگان)
 
-1. به [dash.cloudflare.com](https://dash.cloudflare.com) برو → **Workers & Pages → Create**
-2. محتوای فایل [`relay/deploy/cloudflare/worker.js`](relay/deploy/cloudflare/worker.js) را جای‌گذاری کن
-3. روی **Deploy** کلیک کن و آدرس Worker را کپی کن:
-   `https://worker-name.subdomain.workers.dev`
+[راه‌اندازی Worker](docs/fa/cloudflare-setup.md) — دیپلوی با Wrangler از `relay/deploy/cloudflare/`.
 
 #### گزینه ب — VPS
 
@@ -160,8 +154,8 @@ const EXIT_RELAY_KEY  = "";
 
 <div dir="rtl">
 
-- اگر از **Cloudflare Worker** استفاده می‌کنی: در `EXIT_RELAY_URL` آدرس Worker را بگذار، بدون `/relay` در انتها
-- اگر از VPS استفاده می‌کنی: **EXIT_RELAY_KEY** را با کلیدت پر کن؛ برای Cloudflare خالی بگذار
+- اگر از **Cloudflare Worker** استفاده می‌کنی: `EXIT_RELAY_URL` = آدرس Worker؛ `EXIT_TUNNEL_URL` خالی (Apps Script خودش `/tunnel` می‌سازد)
+- اگر از VPS استفاده می‌کنی: **EXIT_RELAY_KEY** را پر کن؛ برای Cloudflare خالی مگر `RELAY_KEY` در wrangler.toml
 
 </div>
 

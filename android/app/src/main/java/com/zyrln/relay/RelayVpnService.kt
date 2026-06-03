@@ -17,6 +17,9 @@ class RelayVpnService : VpnService() {
 
     private var vpnInterface: ParcelFileDescriptor? = null
     @Volatile private var startGeneration = 0
+    @Volatile private var stopComplete = false
+    private val stopLock = Any()
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
 
     companion object {
         const val TAG = "RelayVpnService"
@@ -41,6 +44,8 @@ class RelayVpnService : VpnService() {
             stopRelay()
             return START_NOT_STICKY
         }
+
+        synchronized(stopLock) { stopComplete = false }
 
         val url = intent?.getStringExtra(EXTRA_URL) ?: return START_NOT_STICKY
         val key = intent.getStringExtra(EXTRA_KEY) ?: return START_NOT_STICKY
@@ -144,23 +149,37 @@ class RelayVpnService : VpnService() {
     }
 
     private fun stopRelay() {
+        synchronized(stopLock) {
+            if (stopComplete) return
+            stopComplete = true
+        }
         startGeneration++
         Log.i(TAG, "stopping relay")
-        Mobile.setSocketProtector(null)
-        Mobile.stop()
-        vpnInterface?.close()
-        vpnInterface = null
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        sendBroadcast(Intent(ACTION_STOPPED))
-        stopSelf()
+        Thread {
+            Mobile.setSocketProtector(null)
+            Mobile.stop()
+            synchronized(stopLock) {
+                vpnInterface?.close()
+                vpnInterface = null
+            }
+            mainHandler.post {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                sendBroadcast(Intent(ACTION_STOPPED))
+                stopSelf()
+            }
+        }.start()
     }
 
     override fun onDestroy() {
-        Mobile.setSocketProtector(null)
-        Mobile.stop()
-        vpnInterface?.close()
-        vpnInterface = null
-        sendBroadcast(Intent(ACTION_STOPPED))
+        synchronized(stopLock) {
+            if (!stopComplete) {
+                stopComplete = true
+                Mobile.setSocketProtector(null)
+                Mobile.stop()
+                vpnInterface?.close()
+                vpnInterface = null
+            }
+        }
         super.onDestroy()
     }
 
