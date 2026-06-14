@@ -31,4 +31,18 @@
     <string name="log_share_subject">Zyrln Debug Log</string>
     <string name="log_empty">No logs to share yet.</string>
     <string name="direct_only_label">Direct (Google only)</string>
+    <string name="btn_split_tunnel">Per-app split tunnel</string>
+    <string name="btn_back">Back</string>
+    <string name="split_tunnel_title">Per-app split tunnel</string>
+    <string name="split_tunnel_mode_hint">Choose which apps use Zyrln. Reconnect for changes to apply.</string>
+    <string name="split_tunnel_mode_off">All apps (default)</string>
+    <string name="split_tunnel_mode_bypass">Bypass selected apps</string>
+    <string name="split_tunnel_mode_only">Only tunnel selected apps</string>
+    <string name="split_tunnel_search">Search apps</string>
+    <string name="split_tunnel_no_apps">No matching apps</string>
+    <string name="split_tunnel_reconnect_note">Reconnect VPN to apply split tunnel changes.</string>
+    <string name="split_tunnel_summary_off">All apps</string>
+    <string name="split_tunnel_summary_bypass">Bypass %1$d app(s)</string>
+    <string name="split_tunnel_summary_only">Only %1$d app(s)</string>
+    <string name="split_tunnel_running_hint">Disconnect to change split tunnel settings</string>
 </resources>

@@ -327,6 +327,14 @@
                 android:layout_height="52dp"
                 android:text="@string/btn_import_config" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSplitTunnel"
+                style="@style/Btn.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:text="@string/btn_split_tunnel" />
+
         </LinearLayout>
 
     </LinearLayout>

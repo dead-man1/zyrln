@@ -31,4 +31,18 @@
     <string name="log_share_subject">لاگ دیباگ زیرلن</string>
     <string name="log_empty">هنوز لاگی برای اشتراک‌گذاری وجود ندارد.</string>
     <string name="direct_only_label">مستقیم (فقط گوگل)</string>
+    <string name="btn_split_tunnel">تونل جدا برای هر اپ</string>
+    <string name="btn_back">بازگشت</string>
+    <string name="split_tunnel_title">تونل جدا برای هر اپ</string>
+    <string name="split_tunnel_mode_hint">انتخاب کنید کدام اپ‌ها از زیرلن استفاده کنند. برای اعمال، دوباره وصل شوید.</string>
+    <string name="split_tunnel_mode_off">همه اپ‌ها (پیش‌فرض)</string>
+    <string name="split_tunnel_mode_bypass">عبور اپ‌های انتخاب‌شده</string>
+    <string name="split_tunnel_mode_only">فقط اپ‌های انتخاب‌شده</string>
+    <string name="split_tunnel_search">جستجوی اپ</string>
+    <string name="split_tunnel_no_apps">اپی پیدا نشد</string>
+    <string name="split_tunnel_reconnect_note">برای اعمال تغییرات، VPN را دوباره وصل کنید.</string>
+    <string name="split_tunnel_summary_off">همه اپ‌ها</string>
+    <string name="split_tunnel_summary_bypass">عبور %1$d اپ</string>
+    <string name="split_tunnel_summary_only">فقط %1$d اپ</string>
+    <string name="split_tunnel_running_hint">برای تغییر تنظیمات، ابتدا قطع کنید</string>
 </resources>

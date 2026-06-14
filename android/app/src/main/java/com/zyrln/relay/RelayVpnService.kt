@@ -94,7 +94,7 @@ class RelayVpnService : VpnService() {
 
         try {
             // TUN routes all IPv4; Go forwarder dials tunnel/direct per flow. HTTP proxy kept for proxy-aware apps.
-            vpnInterface = Builder()
+            val builder = Builder()
                 .setSession(getString(R.string.vpn_session_name))
                 .setMtu(VPN_MTU)
                 .addAddress(VPN_ADDRESS, VPN_PREFIX)
@@ -102,7 +102,8 @@ class RelayVpnService : VpnService() {
                 .addDnsServer("8.8.8.8")
                 .addDnsServer("1.1.1.1")
                 .setHttpProxy(ProxyInfo.buildDirectProxy("127.0.0.1", PROXY_PORT))
-                .establish()
+            applySplitTunnel(builder)
+            vpnInterface = builder.establish()
             if (vpnInterface == null) {
                 failStart(getString(R.string.error_vpn_permission), generation)
                 return
@@ -124,6 +125,13 @@ class RelayVpnService : VpnService() {
                 TAG,
                 "TUN forwarder active fd=${vpnInterface!!.fd} routes=0.0.0.0/0 proxy=127.0.0.1:$PROXY_PORT"
             )
+            if (generation != startGeneration) {
+                Mobile.setSocketProtector(null)
+                Mobile.stop()
+                vpnInterface?.close()
+                vpnInterface = null
+                return
+            }
             sendBroadcast(Intent(ACTION_STARTED))
         } catch (e: Exception) {
             Log.e(TAG, "VPN establish failed: ${e.message}")
@@ -181,6 +189,35 @@ class RelayVpnService : VpnService() {
             }
         }
         super.onDestroy()
+    }
+
+    private fun applySplitTunnel(builder: Builder) {
+        val prefs = getSharedPreferences("config", MODE_PRIVATE)
+        SplitTunnelPrefs.resolvePackages(prefs, packageManager, persistPrune = true)
+        val cfg = SplitTunnelPrefs.loadResolved(prefs, packageManager)
+        if (!SplitTunnelPrefs.isActive(cfg)) {
+            return
+        }
+        var applied = 0
+        for (pkg in cfg.packages) {
+            if (pkg == packageName) {
+                continue
+            }
+            try {
+                when (cfg.mode) {
+                    SplitTunnelPrefs.MODE_BYPASS -> builder.addDisallowedApplication(pkg)
+                    SplitTunnelPrefs.MODE_ONLY -> builder.addAllowedApplication(pkg)
+                }
+                applied++
+            } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
+                Log.w(TAG, "split tunnel: unknown package $pkg")
+            }
+        }
+        if (applied == 0) {
+            Log.w(TAG, "split tunnel mode=${cfg.mode}: no valid packages, using full VPN")
+        } else {
+            Log.i(TAG, "split tunnel mode=${cfg.mode} apps=$applied")
+        }
     }
 
     private fun buildNotification(directOnly: Boolean): Notification {

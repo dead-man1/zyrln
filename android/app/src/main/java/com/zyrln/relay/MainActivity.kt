@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
         // Survives activity recreation (theme/language change)
         private val logCache = android.text.SpannableStringBuilder()
         private const val DEFAULT_DIRECT_ONLY = true
+        private const val STATE_USER_REQUESTED_STOP = "user_requested_stop"
     }
 
     private lateinit var binding: ActivityMainBinding
@@ -70,6 +71,7 @@ class MainActivity : AppCompatActivity() {
 
     private val startedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
+            if (userRequestedStop) return
             userRequestedStop = false
             startUptimeTicker()
             startLogPolling()
@@ -113,8 +115,10 @@ class MainActivity : AppCompatActivity() {
 
     private val errorReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
+            userRequestedStop = false
             activeUrl = null
             activeKey = null
+            stopLogPolling()
             stopUptimeTicker()
             updateUI(running = false)
             val message = intent?.getStringExtra(RelayVpnService.EXTRA_ERROR)
@@ -123,8 +127,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_USER_REQUESTED_STOP, userRequestedStop)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        userRequestedStop = savedInstanceState?.getBoolean(STATE_USER_REQUESTED_STOP, false) ?: false
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -133,6 +143,7 @@ class MainActivity : AppCompatActivity() {
         binding.versionTag.text = "v${BuildConfig.VERSION_NAME}"
 
         binding.btnImportConfig.setOnClickListener { importConfig() }
+        binding.btnSplitTunnel.setOnClickListener { openSplitTunnelSettings() }
         binding.btnLanguage.setOnClickListener { toggleLanguage() }
         binding.btnTheme.setOnClickListener { toggleTheme() }
         binding.btnConnect.setOnClickListener { onConnectClicked() }
@@ -179,25 +190,26 @@ class MainActivity : AppCompatActivity() {
 
         syncModeFromPrefs()
         applyDirectEnabledFromPrefs()
-        updateUI(running = Mobile.isRunning())
+        val initialRunning = vpnAppearsRunning()
+        updateUI(running = initialRunning)
+        updateSplitTunnelBtn()
         updateLanguageButton()
         updateThemeButton()
 
-        if (!Mobile.isRunning() && !prefs.getBoolean("direct_only", false)) {
+        if (!initialRunning && !prefs.getBoolean("direct_only", false)) {
             loadConfigs().firstOrNull()?.let { (u, k) ->
                 Thread { Mobile.warmupTunnel(u, k) }.start()
             }
         }
 
         // Restore log cache after recreation (theme/language change)
-        if (logCache.isNotEmpty() && Mobile.isRunning()) {
+        if (logCache.isNotEmpty() && initialRunning) {
             binding.logOutput.text = logCache
             binding.logScroll.post { binding.logScroll.fullScroll(View.FOCUS_DOWN) }
         }
 
         // Entrance animation — only animate views that are actually visible
-        val running = Mobile.isRunning()
-        val panelViews = if (running)
+        val panelViews = if (initialRunning)
             listOf<View?>(binding.statusCard, binding.logCard)
         else
             listOf<View?>(binding.statusCard, binding.bottomActions)
@@ -221,10 +233,11 @@ class MainActivity : AppCompatActivity() {
         androidx.core.content.ContextCompat.registerReceiver(this, errorReceiver, IntentFilter(RelayVpnService.ACTION_ERROR), androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED)
         syncModeFromPrefs()
         applyDirectEnabledFromPrefs()
-        val running = Mobile.isRunning() && !userRequestedStop
+        val running = vpnAppearsRunning()
         if (running) resumeUptimeTicker() else stopUptimeTicker()
         if (running) startLogPolling() else stopLogPolling()
         updateUI(running = running)
+        updateSplitTunnelBtn()
     }
 
     override fun onPause() {
@@ -244,12 +257,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onConnectClicked() {
-        val running = Mobile.isRunning()
-        if (running) {
+        if (vpnAppearsRunning()) {
             playMotion(binding.btnConnect, R.anim.motion_soft)
             stopVpn()
             return
         }
+        if (userRequestedStop && Mobile.isRunning()) return
         when {
             directOnlySelected -> connectDirect()
             selectedUrl != null -> connectConfig(selectedUrl!!, selectedKey ?: "")
@@ -328,7 +341,37 @@ class MainActivity : AppCompatActivity() {
             if (!running) { binding.logOutput.text = ""; logCache.clear() }
             refreshList(running)
             updateDirectBtn()
+            updateSplitTunnelBtn()
         }
+    }
+
+    private fun vpnAppearsRunning(): Boolean = Mobile.isRunning() && !userRequestedStop
+
+    private fun openSplitTunnelSettings() {
+        if (vpnAppearsRunning()) {
+            Toast.makeText(this, R.string.split_tunnel_running_hint, Toast.LENGTH_SHORT).show()
+            return
+        }
+        startActivity(Intent(this, SplitTunnelAppsActivity::class.java))
+    }
+
+    private fun updateSplitTunnelBtn() {
+        val cfg = SplitTunnelPrefs.loadResolved(prefs, packageManager)
+        val summary = SplitTunnelPrefs.summaryResolved(
+            prefs,
+            packageManager,
+            getString(R.string.split_tunnel_summary_off),
+            getString(R.string.split_tunnel_summary_bypass),
+            getString(R.string.split_tunnel_summary_only),
+        )
+        binding.btnSplitTunnel.text = if (SplitTunnelPrefs.isActive(cfg)) {
+            "${getString(R.string.btn_split_tunnel)} · $summary"
+        } else {
+            getString(R.string.btn_split_tunnel)
+        }
+        val running = vpnAppearsRunning()
+        binding.btnSplitTunnel.isEnabled = !running
+        binding.btnSplitTunnel.alpha = if (running) 0.5f else 1f
     }
 
     private fun toggleLanguage() {
@@ -358,7 +401,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnTheme.imageTintList = ContextCompat.getColorStateList(this, R.color.icon)
     }
 
-    private fun refreshList(running: Boolean = Mobile.isRunning()) {
+    private fun refreshList(running: Boolean = vpnAppearsRunning()) {
         val configs = loadConfigs()
         binding.configList.removeAllViews()
 
@@ -549,7 +592,7 @@ class MainActivity : AppCompatActivity() {
                                     selectedUrl = null
                                     selectedKey = null
                                 }
-                                refreshList(running = Mobile.isRunning())
+                                refreshList(running = vpnAppearsRunning())
                             }
                         })
                         card.startAnimation(deleteAnim)
@@ -763,7 +806,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun syncModeFromPrefs() {
         val savedUrl = prefs.getString("url", null)?.takeIf { it.isNotEmpty() }
-        if (Mobile.isRunning()) {
+        if (vpnAppearsRunning()) {
             activeUrl = savedUrl
             activeKey = if (savedUrl != null) prefs.getString("key", null) else null
         } else {
@@ -775,7 +818,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun toggleDirectMode() {
         // ⚡ toggles Google direct bypass for relay/tunnel profiles — not the "Direct only" card.
-        if (Mobile.isRunning() || directOnlySelected) return
+        if (vpnAppearsRunning() || directOnlySelected) return
         if (selectedUrl == null && activeUrl == null) return
         val next = !Mobile.isDirectEnabled()
         Mobile.setDirectEnabled(next)
@@ -799,6 +842,6 @@ class MainActivity : AppCompatActivity() {
         )
         binding.btnDirect.imageTintList = ColorStateList.valueOf(color)
         binding.btnDirect.alpha = 1f
-        binding.btnDirect.isEnabled = !directOnlySelected && !Mobile.isRunning()
+        binding.btnDirect.isEnabled = !directOnlySelected && !vpnAppearsRunning()
     }
 }
