@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">Zyrln</string>
     <string name="btn_import_config">Import from Clipboard</string>
+    <string name="btn_export_config">Export to Clipboard</string>
     <string name="status_stopped">Stopped</string>
     <string name="status_running">Running — proxy on 127.0.0.1:8085</string>
     <string name="empty_configs">No saved configs yet.\nImport or enter one to get started.</string>
@@ -20,6 +21,7 @@
     <string name="msg_config_saved_connect">Config saved — tap it to connect</string>
     <string name="msg_already_exists">Already in list</string>
     <string name="msg_invalid_config">Invalid config. Paste a JSON like {\"url\":\"...\",\"key\":\"...\"}</string>
+    <string name="msg_export_copied">Config copied — paste on another device with Import</string>
     <string name="dialog_remove_title">Remove Config</string>
     <string name="dialog_remove_active">\"%1$s\" is currently connected. Disconnect and remove it?</string>
     <string name="dialog_remove_inactive">Remove \"%1$s\"?</string>

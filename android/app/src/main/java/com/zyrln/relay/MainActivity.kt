@@ -538,6 +538,21 @@ class MainActivity : AppCompatActivity() {
                     .show()
             }
 
+            val exportBtn = android.widget.ImageButton(this).apply {
+                layoutParams = LinearLayout.LayoutParams(iconButtonSize, iconButtonSize)
+                    .apply { marginStart = (4 * dp).toInt() }
+                setImageDrawable(ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_share))
+                background = null
+                imageTintList = ContextCompat.getColorStateList(this@MainActivity, R.color.text_dim)
+                scaleType = android.widget.ImageView.ScaleType.CENTER
+                setPadding(iconButtonPadding, iconButtonPadding, iconButtonPadding, iconButtonPadding)
+                contentDescription = getString(R.string.btn_export_config)
+            }
+            exportBtn.setOnClickListener {
+                copyConfigToClipboard(url, key)
+                playMotion(exportBtn, R.anim.motion_confirm)
+            }
+
             val deleteBtn = android.widget.ImageButton(this).apply {
                 layoutParams = LinearLayout.LayoutParams(iconButtonSize, iconButtonSize)
                     .apply { marginStart = (6 * dp).toInt() }
@@ -550,6 +565,7 @@ class MainActivity : AppCompatActivity() {
 
             row.addView(label)
             row.addView(infoBtn)
+            row.addView(exportBtn)
             row.addView(deleteBtn)
             card.addView(row)
 
@@ -739,6 +755,14 @@ class MainActivity : AppCompatActivity() {
             Log.e("MainActivity", "Import failed: ${e.message}")
             Toast.makeText(this, getString(R.string.msg_invalid_config), Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun copyConfigToClipboard(url: String, key: String) {
+        if (url.isBlank() || key.isBlank()) return
+        val json = ConfigUtils.toExportJson(url, key)
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Zyrln config", json))
+        Toast.makeText(this, R.string.msg_export_copied, Toast.LENGTH_SHORT).show()
     }
 
     private fun loadConfigs(): List<Pair<String, String>> {

@@ -28,6 +28,26 @@ object ConfigUtils {
         return RelayConfig(url, key)
     }
 
+    /** Same compact JSON as desktop `/api/export` (no pretty-print, slashes not escaped). */
+    fun toExportJson(url: String, key: String): String {
+        return """{"url":"${jsonEscape(url.trim())}","key":"${jsonEscape(key.trim())}"}"""
+    }
+
+    private fun jsonEscape(value: String): String {
+        return buildString(value.length + 4) {
+            for (ch in value) {
+                when (ch) {
+                    '\\' -> append("\\\\")
+                    '"' -> append("\\\"")
+                    '\n' -> append("\\n")
+                    '\r' -> append("\\r")
+                    '\t' -> append("\\t")
+                    else -> append(ch)
+                }
+            }
+        }
+    }
+
     fun configLabel(url: String): String {
         val first = url.split(",").firstOrNull()?.trim() ?: return url
         val id = first.substringAfter("/macros/s/", "").substringBefore("/")

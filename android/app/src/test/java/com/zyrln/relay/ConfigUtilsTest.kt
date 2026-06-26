@@ -48,6 +48,25 @@ class ConfigUtilsTest {
     }
 
     @Test
+    fun toExportJson_roundTripsWithParseImportText() {
+        val url = "https://script.google.com/macros/s/ABC/exec"
+        val key = "secret"
+        val exported = ConfigUtils.toExportJson(url, key)
+        val parsed = ConfigUtils.parseImportText(exported)
+        assertEquals(url, parsed.url)
+        assertEquals(key, parsed.key)
+    }
+
+    @Test
+    fun toExportJson_matchesDesktopFormat() {
+        val url = "https://script.google.com/macros/s/AKfycb/exec"
+        val key = "swrkwbMS1X666fjzReip+PbodKcPyDK7Xbk5gRSgRUE="
+        val exported = ConfigUtils.toExportJson(url, key)
+        assertEquals("""{"url":"$url","key":"$key"}""", exported)
+        assertEquals(-1, exported.indexOf("\\/"))
+    }
+
+    @Test
     fun configLabel_usesStableWordLabelForAppsScriptIds() {
         val one = ConfigUtils.configLabel("https://script.google.com/macros/s/ABCDEFGHIJK/exec")
         val two = ConfigUtils.configLabel("https://script.google.com/macros/s/ABCDEFGHIJK/exec")
