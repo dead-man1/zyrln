@@ -1,8 +1,8 @@
 package com.zyrln.relay
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.graphics.Typeface
@@ -86,29 +86,27 @@ class SplitTunnelAppsActivity : AppCompatActivity() {
 
     private fun loadLaunchableApps(): List<AppEntry> {
         val pm = packageManager
-        val out = ArrayList<AppEntry>()
-
-        val installed = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            pm.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0))
+        val launchIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+        val activities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.queryIntentActivities(
+                launchIntent,
+                PackageManager.ResolveInfoFlags.of(0),
+            )
         } else {
             @Suppress("DEPRECATION")
-            pm.getInstalledApplications(0)
+            pm.queryIntentActivities(launchIntent, 0)
         }
-        for (ai in installed) {
-            if (!isUserInstalledApp(ai)) continue
-            if (ai.packageName == packageName) continue
-            val label = ai.loadLabel(pm).toString().trim()
+
+        // One row per package — same apps the user sees in the launcher (YouTube, Gmail, …).
+        val seen = LinkedHashMap<String, AppEntry>()
+        for (ri in activities) {
+            val pkg = ri.activityInfo.packageName
+            if (pkg == packageName || pkg in seen) continue
+            val label = ri.loadLabel(pm).toString().trim()
             if (label.isEmpty()) continue
-            out.add(AppEntry(ai.packageName, label, ai.loadIcon(pm)))
+            seen[pkg] = AppEntry(pkg, label, ri.loadIcon(pm))
         }
-
-        out.sortBy { it.label.lowercase() }
-        return out
-    }
-
-    /** User-installed / sideloaded apps only — no OEM or preloaded system packages. */
-    private fun isUserInstalledApp(ai: ApplicationInfo): Boolean {
-        return (ai.flags and ApplicationInfo.FLAG_SYSTEM) == 0
+        return seen.values.sortedBy { it.label.lowercase() }
     }
 
     private fun refreshModeCards() {
