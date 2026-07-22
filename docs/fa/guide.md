@@ -174,12 +174,12 @@ const EXIT_RELAY_KEY  = "your-exit-key";
 ‏Go 1.25+ لازم است.
 
 ```bash
-make desktop              # ./zyrln محلی
-make desktop-release      # dist/ برای لینوکس، ویندوز، macOS
+make desktop              # local ./zyrln
+make desktop-release      # dist/ for Linux, Windows, macOS
 make desktop-linux|windows|macos
-make keystore             # یک بار — کلید امضای اندروید
-make android              # APK release امضاشده
-make proxy                # پروکسی از سورس (نیاز به CA)
+make keystore             # once — Android signing key
+make android              # signed release APK
+make proxy                # run proxy from source (needs CA)
 make test
 make vps-relay-bundle     # → dist/zyrln-VERSION-vps.zip
 ```
