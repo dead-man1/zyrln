@@ -194,10 +194,10 @@ make vps-relay-bundle     # → dist/zyrln-VERSION-vps.zip
 
 به این ترتیب بررسی کن:
 
-۱. دیپلوی Apps Script فعال است و دسترسی روی «Anyone» تنظیم شده؟
-۲. ‏`EXIT_RELAY_KEY` در Apps Script دقیقاً با `ZYRLN_RELAY_KEY` روی VPS یکی است؟ (Cloudflare از این کلید استفاده نمی‌کند.)
-۳. رله‌ی VPS در حال اجراست و پورت فایروال باز است؟ `curl -s http://YOUR_VPS_IP:8787/healthz` → `ok`
-۴. بعد از آخرین تغییر ثابت‌ها، Apps Script را دوباره دیپلوی کردی؟ (Deploy → Manage deployments → آیکن مداد → New version → Deploy)
+1. دیپلوی Apps Script فعال است و دسترسی روی «Anyone» تنظیم شده؟
+2. ‏`EXIT_RELAY_KEY` در Apps Script دقیقاً با `ZYRLN_RELAY_KEY` روی VPS یکی است؟ (Cloudflare از این کلید استفاده نمی‌کند.)
+3. رله‌ی VPS در حال اجراست و پورت فایروال باز است؟ `curl -s http://YOUR_VPS_IP:8787/healthz` → `ok`
+4. بعد از آخرین تغییر ثابت‌ها، Apps Script را دوباره دیپلوی کردی؟ (Deploy → Manage deployments → آیکن مداد → New version → Deploy)
 
 **هیچ سایتی از پروکسی باز نمی‌شود**
 
