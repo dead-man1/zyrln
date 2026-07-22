@@ -84,7 +84,7 @@
 
 ### مرحله ۲ — رله خروجی
 
-‏exit سایت‌های واقعی را باز می‌کند. یکی را انتخاب کن — Cloudflare ساده‌تر و رایگان است؛ VPS کنترل بیشتری روی اینکه چه کسی متادیتای مقصد ترافیک شما را می‌بیند به شما می‌دهد.
+رله خروجی سایت‌های واقعی را باز می‌کند. یکی را انتخاب کن — Cloudflare ساده‌تر و رایگان است؛ VPS کنترل بیشتری روی اینکه چه کسی متادیتای مقصد ترافیک شما را می‌بیند به شما می‌دهد.
 
 #### گزینه الف — Cloudflare Worker (رایگان)
 
@@ -94,7 +94,7 @@
 
 ‏VPS لینوکس (amd64 یا arm64)، IP عمومی، پورت **8787** باز، SSH با `user@host` و `sudo`.
 
-1. ‏**`zyrln-VERSION-vps.zip`** را از [Releases](https://github.com/ajavadinezhad/zyrln/releases) بگیر و unzip کن
+1. ‏**`zyrln-VERSION-vps.zip`** را از [Releases](https://github.com/ajavadinezhad/zyrln/releases) بگیر و از حالت فشرده خارج کن
 2. `./install-vps-relay.sh user@YOUR_VPS_IP` را اجرا کن  
    `ZYRLN_RELAY_KEY=secret` یا `ZYRLN_RELAY_KEY=auto` — همان مقدار `EXIT_RELAY_KEY` در Apps Script
 3. در `Code.gs`: `EXIT_RELAY_URL = "http://YOUR_VPS_IP:8787/relay"` و `EXIT_RELAY_KEY` مطابق VPS
@@ -111,21 +111,21 @@
 
 | | کلید ۱ — کلاینت | کلید ۲ — exit |
 |---|---|---|
-| هدف | ثابت می‌کند *دستگاه شما* مجاز به استفاده از *Apps Script* شماست | ثابت می‌کند *Apps Script شما* مجاز به استفاده از *رله‌ی خروجی* شماست |
+| هدف | ثابت می‌کند *دستگاه شما* مجاز به استفاده از *Apps Script* شماست | ثابت می‌کند *Apps Script* شما مجاز به استفاده از *رله‌ی خروجی* شماست |
 | مسیر | اپ → Apps Script | ‏Apps Script → VPS یا Cloudflare |
 | در اپ | بله (`auth-key`) | خیر |
 | Apps Script | `AUTH_KEY` | `EXIT_RELAY_KEY` |
 | Exit | — | `ZYRLN_RELAY_KEY` |
 | روی سیم | JSON `"k"` | هدر `X-Relay-Key` |
 
-کلید ۲ روی VPS و Cloudflare **همان نام** دارد (`ZYRLN_RELAY_KEY`). همان مقدار در `EXIT_RELAY_KEY` (Code.gs) و `ZYRLN_RELAY_KEY` (exit). اگر exit بدون کلید است، `EXIT_RELAY_KEY` را در Code.gs خالی بگذار.
+کلید ۲ روی VPS و Cloudflare **همان نام** دارد (`ZYRLN_RELAY_KEY`). همان مقدار در `EXIT_RELAY_KEY` (Code.gs) و `ZYRLN_RELAY_KEY` (exit). اگر رله خروجی بدون کلید است، `EXIT_RELAY_KEY` را در Code.gs خالی بگذار.
 
 ```
 App ──key 1──► Apps Script ──key 2──► Cloudflare or VPS
 ```
 
 1. [script.google.com](https://script.google.com) → **New project**
-2. محتوای [`relay/deploy/apps-script/Code.gs`](../../relay/deploy/apps-script/Code.gs) را paste کن
+2. محتوای [`relay/deploy/apps-script/Code.gs`](../../relay/deploy/apps-script/Code.gs) را جای‌گذاری کن
 3. ثابت‌ها را ویرایش کن — **Cloudflare** یا **VPS**، نه هر دو:
 
 **Cloudflare:**
@@ -149,12 +149,12 @@ const EXIT_RELAY_KEY  = "your-exit-key";
 4. **Deploy → New deployment** → Web app → Execute as **Me** → Access **Anyone**
 5. ‏URL را کپی کن: `https://script.google.com/macros/s/AKfycb.../exec`
 
-هر اکانت گوگل حدود ۲۰٬۰۰۰ درخواست رله در روز دارد. برای resilience چند deployment (اکانت‌های مختلف) را با ویرگول در اپ اضافه کن.
+هر اکانت گوگل حدود ۲۰٬۰۰۰ درخواست رله در روز دارد. برای اطمینان بیشتر چند deployment (اکانت‌های مختلف) را با ویرگول در اپ اضافه کن.
 
 ### مرحله ۴ — اتصال (دسکتاپ)
 
 1. **+** → پروفایل جدید
-2. ‏URL Apps Script و کلید را paste کن
+2. ‏URL Apps Script و کلید را جای‌گذاری کن
 3. **Save** → **Connect**
 
 ### مرحله ۵ — اندروید
@@ -207,7 +207,7 @@ make vps-relay-bundle     # → dist/zyrln-VERSION-vps.zip
 
 **خطای SSL در HTTPS (فقط دسکتاپ)**
 
-- ‏CA نصب یا trusted نیست — دوباره `certs/zyrln-ca.pem` را import کن
+- ‏CA نصب یا معتبر نیست — دوباره `certs/zyrln-ca.pem` را import کن
 
 **سهمیه Apps Script تمام شد**
 
@@ -216,9 +216,9 @@ make vps-relay-bundle     # → dist/zyrln-VERSION-vps.zip
 **یوتیوب باز می‌شود، اینستاگرام نه**
 
 - اینستاگرام IP-blocked است — زنجیره رله کامل لازم است
-- ‏VPS/Cloudflare exit در حال اجراست؟
+- رله خروجی VPS/Cloudflare در حال اجراست؟
 
-‏**X / Discord / ChatGPT روی exit Cloudflare Worker**
+‏**X / Discord / ChatGPT** روی **exit Cloudflare Worker**
 
 - ‏Worker به سایت‌های پشت Cloudflare نمی‌رسد — VPS لازم است. [cloudflare-setup.md](cloudflare-setup.md).
 
@@ -228,8 +228,8 @@ make vps-relay-bundle     # → dist/zyrln-VERSION-vps.zip
 
 - ‏Apps Script و کلید اختصاصی خودت را deploy کن
 - ‏`config.env`، `certs/` و کلیدها را commit نکن
-- گوگل و exit provider متادیتا (زمان، حجم) را می‌بینند، نه محتوای رمزشده روی مسیر تونل
-- در صورت leak کلید را عوض کن
+- گوگل و ارائه‌دهنده رله خروجی متادیتا (زمان، حجم) را می‌بینند، نه محتوای رمزشده روی مسیر تونل
+- در صورت افشای کلید، آن را عوض کن
 - ‏`certs/zyrln-ca-key.pem` فقط روی دستگاه خودت (دسکتاپ)
 
 ---
